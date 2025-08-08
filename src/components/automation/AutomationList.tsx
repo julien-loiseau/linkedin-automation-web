@@ -15,6 +15,7 @@ interface Automation {
   resource_type: string | null
   file_name: string | null
   engagement_criteria: any
+  keywords?: string[]
   created_at: string
 }
 
@@ -63,6 +64,7 @@ export function AutomationList() {
       const data = await response.json()
 
       if (response.ok) {
+        console.log('🔍 Automation data received:', data.automations?.[0]) // Debug: Check first automation
         setAutomations(data.automations || [])
       } else {
         setError(data.error || 'Failed to fetch automations')
@@ -185,6 +187,50 @@ export function AutomationList() {
     return selected.length > 0 ? selected.join(', ') : 'None'
   }
 
+  const getDetailedCriteriaText = (automation: Automation) => {
+    const criteria = automation.engagement_criteria
+    const selected = []
+    if (criteria.hasLiked) selected.push('Has liked the post')
+    if (criteria.hasFollowed) selected.push('Has followed the author')
+    if (criteria.hasConnected) selected.push('Has connected with you')
+    if (criteria.hasCommented) selected.push('Has commented on the post')
+    
+    let result = selected.join(' • ')
+    
+    // Debug: Log automation data to see what's available
+    console.log('🔍 Automation keywords:', automation.keywords)
+    console.log('🔍 Full automation:', automation)
+    
+    // Add keyword if commented criteria is selected
+    if (criteria.hasCommented && automation.keywords && automation.keywords.length > 0) {
+      result += ` • Keyword: "${automation.keywords[0]}"`
+    } else if (criteria.hasCommented) {
+      result += ` • Keyword: [Not available]`
+    }
+    
+    return result
+  }
+
+  const formatLastProcessed = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) return 'Just now'
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
+    return date.toLocaleDateString()
+  }
+
+  // Mock data - in real implementation, these would come from the automation data
+  const getAutomationStats = (automation: Automation) => {
+    return {
+      totalComments: 43, // This would come from automation.comments_count or similar
+      dmsSent: 12,       // This would come from automation.messages_sent or similar
+      matchRate: Math.round((12 / 43) * 100) // Calculate match percentage
+    }
+  }
+
   const toggleComments = (automationId: string) => {
     if (openCommentsId === automationId) {
       // Closing the section
@@ -240,7 +286,7 @@ export function AutomationList() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
-                  <h4 className="text-sm font-medium text-gray-900">{automation.name}</h4>
+                  <h3 className="text-lg font-semibold text-gray-900">{automation.name}</h3>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     automation.status === 'active' 
                       ? 'bg-green-100 text-green-800' 
@@ -260,14 +306,6 @@ export function AutomationList() {
                   </span>
                 </div>
                 
-                <div className="mt-2 text-sm text-gray-600 space-y-1">
-                  <p><strong>Post:</strong> <a href={automation.post_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View post</a></p>
-                  <p><strong>Criteria:</strong> {getCriteriaText(automation.engagement_criteria)}</p>
-                  <p><strong>Message:</strong> {automation.message_template.substring(0, 100)}{automation.message_template.length > 100 ? '...' : ''}</p>
-                  {automation.file_name && (
-                    <p><strong>File:</strong> {automation.file_name}</p>
-                  )}
-                </div>
               </div>
 
               <div className="flex items-center space-x-3">
@@ -326,7 +364,67 @@ export function AutomationList() {
               </div>
             </div>
             
-            {/* Comments Section */}
+            {/* Analytics Section - Post Link and Stats */}
+            <div className="mt-4 space-y-3">
+              {/* Post Link */}
+              <div className="flex items-center text-sm">
+                <svg className="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                <a 
+                  href={automation.post_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  View original post
+                </a>
+              </div>
+              
+              {/* Analytics Row */}
+              <div className="flex items-center space-x-6 text-sm text-gray-600">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <span>{getAutomationStats(automation).totalComments} comments</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>{getAutomationStats(automation).dmsSent} DMs sent</span>
+                </div>
+                
+                <div className="flex items-center relative group">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="border-b border-dotted border-gray-400 cursor-help hover:border-gray-600 transition-colors">
+                    {getAutomationStats(automation).matchRate}% matched criteria
+                  </span>
+                  {/* Custom tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 max-w-xs">
+                    <div className="font-medium mb-1">Engagement Criteria:</div>
+                    <div className="text-gray-200">{getDetailedCriteriaText(automation)}</div>
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45 -mt-1"></div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Last processed {formatLastProcessed(automation.created_at)}</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Separator and Comments Section */}
+            {openCommentsId === automation.id && (
+              <div className="mt-6 pt-4 border-t border-gray-200"></div>
+            )}
             <CommentsSection
               key={`comments-${automation.id}-${openCommentsId === automation.id ? Date.now() : 'closed'}`}
               automationId={automation.id}
