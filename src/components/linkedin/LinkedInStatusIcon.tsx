@@ -35,7 +35,7 @@ export function LinkedInStatusIcon() {
 
       const data = await response.json()
       setStatus({
-        connected: response.ok && data.connected,
+        connected: response.ok && data.isConnected,
         profile: data.profile
       })
     } catch (error) {
