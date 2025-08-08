@@ -44,7 +44,7 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-bold text-gray-900">
                 LinkedIn Automation Dashboard
               </h1>
-              <p className="text-gray-600">Welcome back, {user.email}</p>
+              <p className="text-gray-600">Welcome back, {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}! 😊</p>
             </div>
             <div className="flex items-center space-x-3">
               <LinkedInStatusIcon />
