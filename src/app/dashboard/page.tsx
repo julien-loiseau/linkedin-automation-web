@@ -46,12 +46,23 @@ export default function DashboardPage() {
               </h1>
               <p className="text-gray-600">Welcome back, {user.email}</p>
             </div>
-            <button
-              onClick={signOut}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowAutomationForm(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                New Automation
+              </button>
+              <button
+                onClick={signOut}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -64,8 +75,8 @@ export default function DashboardPage() {
             <LinkedInSetup />
           </div>
 
-          {/* Create Automation Form or CTA */}
-          {showAutomationForm ? (
+          {/* Create Automation Form */}
+          {showAutomationForm && (
             <div className="mb-6">
               <AutomationForm 
                 onSuccess={() => {
@@ -74,23 +85,6 @@ export default function DashboardPage() {
                 }}
                 onCancel={() => setShowAutomationForm(false)}
               />
-            </div>
-          ) : (
-            <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-              <div className="px-4 py-5 sm:p-6 text-center">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
-                  Ready to automate your LinkedIn workflow?
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Create your first automation to start sending DMs automatically based on comment engagement.
-                </p>
-                <button 
-                  onClick={() => setShowAutomationForm(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg"
-                >
-                  Create New Automation
-                </button>
-              </div>
             </div>
           )}
 
