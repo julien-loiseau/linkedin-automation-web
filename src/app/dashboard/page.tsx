@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { LinkedInStatusIcon } from '@/components/linkedin/LinkedInStatusIcon'
 import { AutomationForm } from '@/components/automation/AutomationForm'
 import { AutomationList } from '@/components/automation/AutomationList'
+import { ProfileDropdown } from '@/components/common/ProfileDropdown'
 
 export default function DashboardPage() {
   const { user, loading, signOut } = useAuth()
@@ -42,9 +43,8 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                LinkedIn Automation Dashboard
+                Welcome back, {user.user_metadata?.full_name || (user.email?.split('@')[0]?.charAt(0).toUpperCase() + user.email?.split('@')[0]?.slice(1)) || 'User'}! 😊
               </h1>
-              <p className="text-gray-600">Welcome back, {user.user_metadata?.full_name || (user.email?.split('@')[0]?.charAt(0).toUpperCase() + user.email?.split('@')[0]?.slice(1)) || 'User'}! 😊</p>
             </div>
             <div className="flex items-center space-x-3">
               <LinkedInStatusIcon />
@@ -57,12 +57,7 @@ export default function DashboardPage() {
                 </svg>
                 New Automation
               </button>
-              <button
-                onClick={signOut}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
-              >
-                Log Out
-              </button>
+              <ProfileDropdown user={user} onSignOut={signOut} />
             </div>
           </div>
         </div>
