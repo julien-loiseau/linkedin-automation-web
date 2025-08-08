@@ -1,5 +1,8 @@
 'use client'
 
+import { useState } from 'react'
+import { getAuthToken } from '@/lib/supabase'
+
 interface Comment {
   id: string
   comment_text: string
@@ -21,9 +24,50 @@ interface Comment {
 
 interface CommentCardProps {
   comment: Comment
+  automationId: string
 }
 
-export function CommentCard({ comment }: CommentCardProps) {
+export function CommentCard({ comment, automationId }: CommentCardProps) {
+  const [testing, setTesting] = useState(false)
+
+  const testMessage = async () => {
+    setTesting(true)
+    try {
+      const token = await getAuthToken()
+      if (!token) {
+        alert('Please log in first')
+        return
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/automations/${automationId}/test`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          targetCommenter: {
+            name: comment.commenter_name,
+            profileUrl: comment.commenter_profile_url
+          }
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        alert(`✅ Test message sent to ${comment.commenter_name}!`)
+      } else {
+        alert(`❌ Failed to send test message: ${data.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Test message error:', error)
+      alert('❌ Failed to send test message')
+    } finally {
+      setTesting(false)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -108,6 +152,28 @@ export function CommentCard({ comment }: CommentCardProps) {
           </span>
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={testMessage}
+            disabled={testing}
+            className="inline-flex items-center px-2 py-1 border border-green-300 shadow-sm text-xs leading-4 font-medium rounded text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 disabled:opacity-50"
+          >
+            {testing ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Testing...
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+                Test Message
+              </>
+            )}
+          </button>
           {getDMStatusIcon()}
         </div>
       </div>

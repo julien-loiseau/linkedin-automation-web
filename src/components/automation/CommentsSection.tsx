@@ -184,7 +184,7 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
           <>
             <div className="space-y-4 mb-6">
               {comments.map((comment) => (
-                <CommentCard key={comment.id} comment={comment} />
+                <CommentCard key={comment.id} comment={comment} automationId={automationId} />
               ))}
             </div>
 
