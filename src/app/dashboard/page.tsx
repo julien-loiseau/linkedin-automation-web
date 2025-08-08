@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { LinkedInSetup } from '@/components/linkedin/LinkedInSetup'
+import { LinkedInStatusIcon } from '@/components/linkedin/LinkedInStatusIcon'
 import { AutomationForm } from '@/components/automation/AutomationForm'
 import { AutomationList } from '@/components/automation/AutomationList'
 
@@ -47,6 +47,7 @@ export default function DashboardPage() {
               <p className="text-gray-600">Welcome back, {user.email}</p>
             </div>
             <div className="flex items-center space-x-3">
+              <LinkedInStatusIcon />
               <button
                 onClick={() => setShowAutomationForm(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center"
@@ -60,7 +61,7 @@ export default function DashboardPage() {
                 onClick={signOut}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
               >
-                Sign Out
+                Log Out
               </button>
             </div>
           </div>
@@ -70,11 +71,6 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* LinkedIn Setup */}
-          <div className="mb-6">
-            <LinkedInSetup />
-          </div>
-
           {/* Create Automation Form */}
           {showAutomationForm && (
             <div className="mb-6">
