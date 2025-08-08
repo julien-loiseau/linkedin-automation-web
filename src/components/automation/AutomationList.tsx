@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getAuthToken } from '@/lib/supabase'
+import { CommentsSection } from './CommentsSection'
 
 interface Automation {
   id: string
@@ -24,6 +25,7 @@ export function AutomationList() {
   const [testingId, setTestingId] = useState<string | null>(null)
   const [monitoringId, setMonitoringId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [openCommentsId, setOpenCommentsId] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -167,6 +169,16 @@ export function AutomationList() {
     return selected.length > 0 ? selected.join(', ') : 'None'
   }
 
+  const toggleComments = (automationId: string) => {
+    if (openCommentsId === automationId) {
+      // Closing the section
+      setOpenCommentsId(null)
+    } else {
+      // Opening the section - this will trigger refresh in CommentsSection useEffect
+      setOpenCommentsId(automationId)
+    }
+  }
+
   if (loading) {
     return (
       <div className="bg-white shadow rounded-lg p-6">
@@ -232,6 +244,15 @@ export function AutomationList() {
 
               <div className="flex items-center space-x-3">
                 <button
+                  onClick={() => toggleComments(automation.id)}
+                  className="inline-flex items-center px-3 py-2 border border-purple-300 shadow-sm text-sm leading-4 font-medium rounded-md text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                >
+                  <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  {openCommentsId === automation.id ? 'Hide Comments' : 'View Comments'}
+                </button>
+                <button
                   onClick={() => monitorComments(automation.id)}
                   disabled={monitoringId === automation.id}
                   className="inline-flex items-center px-3 py-2 border border-blue-300 shadow-sm text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
@@ -284,6 +305,14 @@ export function AutomationList() {
                 </button>
               </div>
             </div>
+            
+            {/* Comments Section */}
+            <CommentsSection
+              key={`comments-${automation.id}-${openCommentsId === automation.id ? Date.now() : 'closed'}`}
+              automationId={automation.id}
+              isOpen={openCommentsId === automation.id}
+              onClose={() => setOpenCommentsId(null)}
+            />
           </div>
         ))}
       </div>
