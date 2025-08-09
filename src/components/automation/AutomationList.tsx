@@ -19,6 +19,11 @@ interface Automation {
   created_at: string
 }
 
+interface AutomationStats {
+  processedComments: number
+  messagesSent: number
+}
+
 export function AutomationList() {
   const { user } = useAuth()
   const [automations, setAutomations] = useState<Automation[]>([])
@@ -29,6 +34,8 @@ export function AutomationList() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [openCommentsId, setOpenCommentsId] = useState<string | null>(null)
   const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null)
+  const [statsCache, setStatsCache] = useState<Record<string, AutomationStats>>({})
+  const [loadingStats, setLoadingStats] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (user) {
@@ -65,7 +72,11 @@ export function AutomationList() {
 
       if (response.ok) {
         console.log('🔍 Automation data received:', data.automations?.[0]) // Debug: Check first automation
-        setAutomations(data.automations || [])
+        const fetchedAutomations = data.automations || []
+        setAutomations(fetchedAutomations)
+        
+        // Fetch statistics for all automations
+        fetchAllStats(fetchedAutomations)
       } else {
         setError(data.error || 'Failed to fetch automations')
       }
@@ -222,12 +233,64 @@ export function AutomationList() {
     return date.toLocaleDateString()
   }
 
-  // Mock data - in real implementation, these would come from the automation data
+  const fetchAllStats = async (automations: Automation[]) => {
+    const token = await getAuthToken()
+    if (!token) return
+
+    // Fetch stats for all automations in parallel
+    const statsPromises = automations.map(async (automation) => {
+      try {
+        setLoadingStats(prev => new Set([...prev, automation.id]))
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/automations/${automation.id}/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const stats = await response.json()
+          return { id: automation.id, stats }
+        } else {
+          console.error(`Failed to fetch stats for automation ${automation.id}`)
+          return { id: automation.id, stats: { processedComments: 0, messagesSent: 0 } }
+        }
+      } catch (error) {
+        console.error(`Error fetching stats for automation ${automation.id}:`, error)
+        return { id: automation.id, stats: { processedComments: 0, messagesSent: 0 } }
+      } finally {
+        setLoadingStats(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(automation.id)
+          return newSet
+        })
+      }
+    })
+
+    const results = await Promise.all(statsPromises)
+    
+    // Update stats cache
+    const newStatsCache: Record<string, AutomationStats> = {}
+    results.forEach(({ id, stats }) => {
+      newStatsCache[id] = stats
+    })
+    setStatsCache(newStatsCache)
+  }
+
   const getAutomationStats = (automation: Automation) => {
+    const stats = statsCache[automation.id]
+    if (!stats) {
+      return {
+        totalComments: loadingStats.has(automation.id) ? '...' : 0,
+        dmsSent: loadingStats.has(automation.id) ? '...' : 0,
+        matchRate: loadingStats.has(automation.id) ? '...' : 0
+      }
+    }
+    
     return {
-      totalComments: 43, // This would come from automation.comments_count or similar
-      dmsSent: 12,       // This would come from automation.messages_sent or similar
-      matchRate: Math.round((12 / 43) * 100) // Calculate match percentage
+      totalComments: stats.processedComments,
+      dmsSent: stats.messagesSent,
+      matchRate: stats.processedComments > 0 ? Math.round((stats.messagesSent / stats.processedComments) * 100) : 0
     }
   }
 

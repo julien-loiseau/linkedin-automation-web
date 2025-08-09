@@ -36,6 +36,7 @@ interface PaginationInfo {
 interface CommentsResponse {
   comments: Comment[]
   pagination: PaginationInfo
+  error?: string
 }
 
 interface CommentsSectionProps {

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface ProfileDropdownProps {
   user: User
@@ -11,6 +12,7 @@ interface ProfileDropdownProps {
 export function ProfileDropdown({ user, onSignOut }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const { linkedInProfile } = useAuth()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -24,11 +26,15 @@ export function ProfileDropdown({ user, onSignOut }: ProfileDropdownProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Get user display name
+  // Get user display name (LinkedIn first, then Supabase as fallback)
   const getDisplayName = () => {
+    // Try LinkedIn profile name first
+    if (linkedInProfile?.name) {
+      return linkedInProfile.name
+    }
+    // Fallback to Supabase user metadata
     return user.user_metadata?.full_name || 
-           (user.email?.split('@')[0]?.charAt(0).toUpperCase() + user.email?.split('@')[0]?.slice(1)) || 
-           'User'
+           (user.email?.split('@')?.[0] ? (user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1)) : 'User')
   }
 
   // Get user initials for avatar fallback
@@ -36,14 +42,19 @@ export function ProfileDropdown({ user, onSignOut }: ProfileDropdownProps) {
     const name = getDisplayName()
     return name
       .split(' ')
-      .map(word => word.charAt(0))
+      .map((word: string) => word.charAt(0))
       .join('')
       .toUpperCase()
       .slice(0, 2)
   }
 
-  // Get profile picture URL (if available)
+  // Get profile picture URL (LinkedIn first, then Supabase metadata as fallback)
   const getProfilePicture = () => {
+    // Try LinkedIn profile picture first
+    if (linkedInProfile?.profilePicture) {
+      return linkedInProfile.profilePicture
+    }
+    // Fallback to Supabase user metadata
     return user.user_metadata?.avatar_url || user.user_metadata?.picture || null
   }
 
@@ -62,7 +73,8 @@ export function ProfileDropdown({ user, onSignOut }: ProfileDropdownProps) {
             onError={(e) => {
               // Fallback to initials if image fails to load
               e.currentTarget.style.display = 'none'
-              e.currentTarget.nextElementSibling!.style.display = 'flex'
+              const nextSibling = e.currentTarget.nextElementSibling as HTMLElement
+              if (nextSibling) nextSibling.style.display = 'flex'
             }}
           />
         ) : null}

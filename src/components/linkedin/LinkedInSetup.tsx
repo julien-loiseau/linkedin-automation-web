@@ -142,9 +142,9 @@ export function LinkedInSetup() {
         </div>
         
         <div className="flex items-center space-x-4 mb-4">
-          {profile.profilePicture && (
+          {(profile as any).profilePicture && (
             <img 
-              src={profile.profilePicture} 
+              src={(profile as any).profilePicture} 
               alt={profile.name}
               className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
             />

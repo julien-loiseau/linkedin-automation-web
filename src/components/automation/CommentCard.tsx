@@ -18,6 +18,7 @@ interface Comment {
   dm_sent: boolean
   dm_sent_at?: string
   dm_status?: string
+  processing_status?: 'pending' | 'skipped_existing' | 'dm_sent' | 'failed'
   comment_url?: string
   processed_at: string
 }
@@ -91,32 +92,53 @@ export function CommentCard({ comment, automationId }: CommentCardProps) {
   }
 
   const getDMStatusIcon = () => {
-    if (!comment.dm_sent) {
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+    const status = comment.processing_status || 'pending'
+    
+    const statusConfig = {
+      pending: {
+        color: 'bg-blue-100 text-blue-800',
+        icon: (
+          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+        text: 'Pending'
+      },
+      skipped_existing: {
+        color: 'bg-gray-100 text-gray-600',
+        icon: (
+          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          </svg>
+        ),
+        text: 'Skipped'
+      },
+      dm_sent: {
+        color: 'bg-green-100 text-green-800',
+        icon: (
+          <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        ),
+        text: 'Sent'
+      },
+      failed: {
+        color: 'bg-red-100 text-red-800',
+        icon: (
           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
-          No DM
-        </span>
-      )
+        ),
+        text: 'Failed'
+      }
     }
 
-    const statusColors = {
-      sent: 'bg-green-100 text-green-800',
-      delivered: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      failed: 'bg-red-100 text-red-800'
-    }
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
 
     return (
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-        statusColors[comment.dm_status as keyof typeof statusColors] || 'bg-green-100 text-green-800'
-      }`}>
-        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        DM Sent
+      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+        {config.icon}
+        {config.text}
       </span>
     )
   }

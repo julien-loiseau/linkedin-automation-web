@@ -16,6 +16,7 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
   const [validatingPost, setValidatingPost] = useState(false)
   const [postValidated, setPostValidated] = useState(false)
   const [postDetails, setPostDetails] = useState<any>(null)
+  const [showPreview, setShowPreview] = useState(false)
   const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Form state
@@ -25,12 +26,7 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
     keyword: '',
     messageTemplate: '',
     file: null as File | null,
-    engagementCriteria: {
-      hasLiked: false,
-      hasFollowed: false,
-      hasConnected: false,
-      hasCommented: false
-    }
+    processExistingComments: true
   })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,16 +123,9 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
       return
     }
 
-    // Check if "has commented" is selected and keyword is required
-    if (formData.engagementCriteria.hasCommented && !formData.keyword.trim()) {
-      setError('Please enter a keyword when "has commented" is selected')
-      return
-    }
-
-    // Check if at least one engagement criteria is selected
-    const hasAnyCriteria = Object.values(formData.engagementCriteria).some(Boolean)
-    if (!hasAnyCriteria) {
-      setError('Please select at least one engagement criteria')
+    // Check if keyword is provided
+    if (!formData.keyword.trim()) {
+      setError('Please enter a keyword to match in comments')
       return
     }
 
@@ -156,7 +145,7 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
       formDataToSend.append('postUrl', formData.postUrl)
       formDataToSend.append('keyword', formData.keyword)
       formDataToSend.append('messageTemplate', formData.messageTemplate)
-      formDataToSend.append('engagementCriteria', JSON.stringify(formData.engagementCriteria))
+      formDataToSend.append('processExistingComments', formData.processExistingComments.toString())
       
       if (formData.file) {
         formDataToSend.append('file', formData.file)
@@ -249,114 +238,109 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
             Post validation will start automatically after you enter a URL
           </p>
           {postValidated && postDetails && (
-            <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-600 font-medium mb-3">✓ Post validated successfully</p>
+            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm font-medium text-green-800">Post validated successfully</span>
+                </div>
+                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+              </div>
+              
+              <div className="mt-2 text-xs text-gray-600">
+                <span className="font-medium">LinkedIn Post</span>
+                <span className="text-gray-500"> • Ready for automation</span>
+              </div>
+              
+              <div className="mt-1 text-xs text-gray-700">
+                Comments on this post will be monitored for your specified keyword
+              </div>
               
               {postDetails.post?.embedUrl && (
-                <div className="mb-3">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Post Preview:</p>
-                  <div className="bg-white rounded-lg overflow-hidden shadow-sm">
-                    <iframe
-                      src={postDetails.post.embedUrl}
-                      height="400"
-                      width="100%"
-                      frameBorder="0"
-                      allowFullScreen
-                      title="LinkedIn Post Preview"
-                      className="w-full"
-                    />
-                  </div>
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="flex items-center text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    <svg 
+                      className={`w-3 h-3 mr-1 transition-transform ${showPreview ? 'rotate-90' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    {showPreview ? 'Hide Post Preview' : 'Show Post Preview'}
+                  </button>
+                  
+                  {showPreview && (
+                    <div className="mt-2 bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                      <iframe
+                        src={postDetails.post.embedUrl}
+                        height="200"
+                        width="100%"
+                        frameBorder="0"
+                        allowFullScreen
+                        title="LinkedIn Post Preview"
+                        className="w-full"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-              
-              <div className="text-xs text-gray-500">
-                <p><strong>Post ID:</strong> {postDetails.post?.id}</p>
-                <p><strong>URL:</strong> <a href={postDetails.post?.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{postDetails.post?.url}</a></p>
-              </div>
             </div>
           )}
         </div>
 
-        {/* Engagement Criteria */}
+        {/* Keyword Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Engagement Criteria
+          <label htmlFor="keyword" className="block text-sm font-medium text-gray-700 mb-2">
+            Keyword to Match in Comments
           </label>
-          <div className="space-y-3">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.engagementCriteria.hasLiked}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  engagementCriteria: { ...prev.engagementCriteria, hasLiked: e.target.checked }
-                }))}
-                className="mr-3"
-              />
-              <span className="text-sm text-gray-600">Has liked the post</span>
-            </label>
-            
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.engagementCriteria.hasFollowed}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  engagementCriteria: { ...prev.engagementCriteria, hasFollowed: e.target.checked }
-                }))}
-                className="mr-3"
-              />
-              <span className="text-sm text-gray-600">Has followed the author</span>
-            </label>
-            
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.engagementCriteria.hasConnected}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  engagementCriteria: { ...prev.engagementCriteria, hasConnected: e.target.checked }
-                }))}
-                className="mr-3"
-              />
-              <span className="text-sm text-gray-600">Has connected with you</span>
-            </label>
-            
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.engagementCriteria.hasCommented}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  engagementCriteria: { ...prev.engagementCriteria, hasCommented: e.target.checked }
-                }))}
-                className="mr-3"
-              />
-              <span className="text-sm text-gray-600">Has commented on the post</span>
-            </label>
-          </div>
+          <input
+            type="text"
+            id="keyword"
+            value={formData.keyword}
+            onChange={(e) => setFormData(prev => ({ ...prev, keyword: e.target.value }))}
+            placeholder="Enter keyword or phrase..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Only comments containing this keyword will trigger automated messages
+          </p>
         </div>
 
-        {/* Keyword (only shown when "has commented" is selected) */}
-        {formData.engagementCriteria.hasCommented && (
-          <div>
-            <label htmlFor="keyword" className="block text-sm font-medium text-gray-700 mb-2">
-              Keyword to Match in Comments
-            </label>
-            <input
-              type="text"
-              id="keyword"
-              value={formData.keyword}
-              onChange={(e) => setFormData(prev => ({ ...prev, keyword: e.target.value }))}
-              placeholder="Enter keyword or phrase..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required={formData.engagementCriteria.hasCommented}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Can be a single word or multiple words (e.g., "AI tools" or "automation")
-            </p>
+        {/* Process Existing Comments Toggle */}
+        <div>
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="processExistingComments"
+                type="checkbox"
+                checked={formData.processExistingComments}
+                onChange={(e) => setFormData(prev => ({ ...prev, processExistingComments: e.target.checked }))}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+            </div>
+            <div className="ml-3">
+              <label htmlFor="processExistingComments" className="text-sm font-medium text-gray-700">
+                Send messages to existing comments
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.processExistingComments 
+                  ? "Will send messages to existing comments that match your keyword, plus future comments"
+                  : "Will only send messages to new comments posted after creating this automation"
+                }
+              </p>
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Message Template */}
         <div>

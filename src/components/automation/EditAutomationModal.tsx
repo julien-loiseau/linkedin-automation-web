@@ -29,6 +29,7 @@ export function EditAutomationModal({ automation, onClose, onSuccess }: EditAuto
   const [formData, setFormData] = useState({
     name: automation.name,
     messageTemplate: automation.message_template,
+    keyword: (automation as any).keywords?.[0] || '',
     file: null as File | null,
     removeFile: false
   })
@@ -48,6 +49,13 @@ export function EditAutomationModal({ automation, onClose, onSuccess }: EditAuto
     setLoading(true)
     setError('')
 
+    // Validate keyword
+    if (!formData.keyword.trim()) {
+      setError('Please enter a keyword to match in comments')
+      setLoading(false)
+      return
+    }
+
     try {
       const token = await getAuthToken()
       if (!token) {
@@ -59,6 +67,7 @@ export function EditAutomationModal({ automation, onClose, onSuccess }: EditAuto
       const formDataToSend = new FormData()
       formDataToSend.append('name', formData.name)
       formDataToSend.append('messageTemplate', formData.messageTemplate)
+      formDataToSend.append('keyword', formData.keyword)
       formDataToSend.append('removeFile', formData.removeFile.toString())
       
       if (formData.file) {
@@ -136,6 +145,25 @@ export function EditAutomationModal({ automation, onClose, onSuccess }: EditAuto
               />
             </div>
 
+            {/* Keyword Input */}
+            <div>
+              <label htmlFor="keyword" className="block text-sm font-medium text-gray-700 mb-2">
+                Keyword to Match in Comments
+              </label>
+              <input
+                type="text"
+                id="keyword"
+                value={formData.keyword}
+                onChange={(e) => setFormData(prev => ({ ...prev, keyword: e.target.value }))}
+                placeholder="Enter keyword or phrase..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Only comments containing this keyword will trigger automated messages
+              </p>
+            </div>
+
             {/* Info about non-editable settings */}
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
               <div className="flex items-start">
@@ -145,10 +173,10 @@ export function EditAutomationModal({ automation, onClose, onSuccess }: EditAuto
                 <div>
                   <h4 className="text-sm font-medium text-blue-800 mb-1">What can be edited</h4>
                   <p className="text-xs text-blue-700 mb-2">
-                    You can only edit the automation name, message template, and file attachment.
+                    You can edit the automation name, keyword, message template, and file attachment.
                   </p>
                   <p className="text-xs text-blue-700">
-                    To change the post URL, engagement criteria, or keywords, please <strong>create a new automation</strong> to preserve your existing data.
+                    To change the post URL, please <strong>create a new automation</strong> to preserve your existing data.
                   </p>
                 </div>
               </div>

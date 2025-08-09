@@ -43,7 +43,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Welcome back, {user.user_metadata?.full_name || (user.email?.split('@')[0]?.charAt(0).toUpperCase() + user.email?.split('@')[0]?.slice(1)) || 'User'}! 😊
+                Welcome back, {user.user_metadata?.full_name || (user.email?.split('@')?.[0] ? (user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1)) : 'User')}! 😊
               </h1>
             </div>
             <div className="flex items-center space-x-3">
