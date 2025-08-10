@@ -5,6 +5,7 @@ import { getAuthToken } from '@/lib/supabase'
 
 interface Comment {
   id: string
+  comment_id: string
   comment_text: string
   commenter_name: string
   commenter_profile_url?: string
@@ -19,8 +20,8 @@ interface Comment {
   dm_sent_at?: string
   dm_status?: string
   processing_status?: 'pending' | 'skipped_existing' | 'dm_sent' | 'failed'
-  comment_url?: string
   processed_at: string
+  comment_url?: string
 }
 
 interface CommentCardProps {

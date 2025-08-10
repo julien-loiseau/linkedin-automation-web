@@ -7,6 +7,7 @@ import { CommentsPagination } from './CommentsPagination'
 
 interface Comment {
   id: string
+  comment_id: string
   comment_text: string
   commenter_name: string
   commenter_profile_url?: string
@@ -20,8 +21,8 @@ interface Comment {
   dm_sent: boolean
   dm_sent_at?: string
   dm_status?: string
-  comment_url?: string
   processed_at: string
+  comment_url?: string
 }
 
 interface PaginationInfo {
@@ -54,7 +55,15 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
 
   useEffect(() => {
     if (isOpen && automationId) {
+      // Clear any previous error state when opening
+      setError('')
       fetchComments(1)
+    } else if (!isOpen) {
+      // Clear state when closing to avoid stale data
+      setError('')
+      setComments([])
+      setPagination(null)
+      setCurrentPage(1)
     }
   }, [isOpen, automationId])
 
@@ -78,16 +87,25 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
         }
       )
 
+      console.log('CommentsSection: Response status:', response.status)
+      console.log('CommentsSection: Response ok:', response.ok)
+
       const data: CommentsResponse = await response.json()
+      console.log('CommentsSection: Response data:', data)
 
       if (response.ok) {
+        console.log('CommentsSection: Success - setting comments')
+        // Explicitly clear any previous error state on success
+        setError('')
         setComments(data.comments)
         setPagination(data.pagination)
         setCurrentPage(page)
       } else {
+        console.log('CommentsSection: Error response - setting error')
         setError(data.error || 'Failed to fetch comments')
       }
     } catch (error) {
+      console.log('CommentsSection: Catch block triggered:', error)
       setError('Failed to fetch comments')
     } finally {
       setLoading(false)
