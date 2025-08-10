@@ -449,6 +449,16 @@ export function AutomationList() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                   <span>{getAutomationStats(automation).totalComments} comments</span>
+                  <div className="relative group inline-block ml-1.5">
+                    <svg className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-help transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    {/* Comments Info Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
+                      <div className="text-gray-200">Only first comments are considered. Replies to comments are excluded.</div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="flex items-center">
@@ -458,18 +468,21 @@ export function AutomationList() {
                   <span>{getAutomationStats(automation).dmsSent} DMs sent</span>
                 </div>
                 
-                <div className="flex items-center relative group">
+                <div className="flex items-center">
                   <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="border-b border-dotted border-gray-400 cursor-help hover:border-gray-600 transition-colors">
-                    {getAutomationStats(automation).matchRate}% matched criteria
-                  </span>
-                  {/* Custom tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 max-w-xs">
-                    <div className="font-medium mb-1">Engagement Criteria:</div>
-                    <div className="text-gray-200">{getDetailedCriteriaText(automation)}</div>
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45 -mt-1"></div>
+                  <span>{getAutomationStats(automation).matchRate}% matched criteria</span>
+                  <div className="relative group inline-block ml-1.5">
+                    <svg className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-help transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    {/* Tooltip - now appears on hover */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 max-w-xs">
+                      <div className="font-medium mb-1">Engagement Criteria:</div>
+                      <div className="text-gray-200">{getDetailedCriteriaText(automation)}</div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                    </div>
                   </div>
                 </div>
                 
@@ -478,6 +491,16 @@ export function AutomationList() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>Last processed {formatLastProcessed(automation.created_at)}</span>
+                  <div className="relative group inline-block ml-1.5">
+                    <svg className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-help transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    {/* Processing Schedule Info Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
+                      <div className="text-gray-200">Comments are processed every hour</div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
