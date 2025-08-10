@@ -55,7 +55,7 @@ export function AutomationList() {
       
       return () => clearInterval(interval)
     }
-  }, [automations])
+  }, [automations.length, automations.map(a => a.status).join(',')]) // Only re-run when count or statuses change
 
   const fetchAutomations = async () => {
     try {
@@ -71,7 +71,7 @@ export function AutomationList() {
       const data = await response.json()
 
       if (response.ok) {
-        console.log('🔍 Automation data received:', data.automations?.[0]) // Debug: Check first automation
+        // Debug: Check first automation data
         const fetchedAutomations = data.automations || []
         setAutomations(fetchedAutomations)
         
@@ -208,9 +208,7 @@ export function AutomationList() {
     
     let result = selected.join(' • ')
     
-    // Debug: Log automation data to see what's available
-    console.log('🔍 Automation keywords:', automation.keywords)
-    console.log('🔍 Full automation:', automation)
+    // Debug: Check automation keywords availability
     
     // Add keyword if commented criteria is selected
     if (criteria.hasCommented && automation.keywords && automation.keywords.length > 0) {
@@ -362,7 +360,7 @@ export function AutomationList() {
                     {automation.status === 'processing_comments' && (
                       <svg className="animate-spin -ml-1 mr-2 h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
                     {automation.status === 'processing_comments' ? 'Processing Comments' : automation.status}
@@ -399,7 +397,7 @@ export function AutomationList() {
                     <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Monitoring...
                     </>
@@ -416,7 +414,7 @@ export function AutomationList() {
                     <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Archiving...
                     </>
@@ -489,7 +487,7 @@ export function AutomationList() {
               <div className="mt-6 pt-4 border-t border-gray-200"></div>
             )}
             <CommentsSection
-              key={`comments-${automation.id}-${openCommentsId === automation.id ? Date.now() : 'closed'}`}
+              key={`comments-${automation.id}`}
               automationId={automation.id}
               isOpen={openCommentsId === automation.id}
               onClose={() => setOpenCommentsId(null)}

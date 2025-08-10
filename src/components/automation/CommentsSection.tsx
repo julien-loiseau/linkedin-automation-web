@@ -87,25 +87,18 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
         }
       )
 
-      console.log('CommentsSection: Response status:', response.status)
-      console.log('CommentsSection: Response ok:', response.ok)
-
       const data: CommentsResponse = await response.json()
-      console.log('CommentsSection: Response data:', data)
 
       if (response.ok) {
-        console.log('CommentsSection: Success - setting comments')
         // Explicitly clear any previous error state on success
         setError('')
         setComments(data.comments)
         setPagination(data.pagination)
         setCurrentPage(page)
       } else {
-        console.log('CommentsSection: Error response - setting error')
         setError(data.error || 'Failed to fetch comments')
       }
     } catch (error) {
-      console.log('CommentsSection: Catch block triggered:', error)
       setError('Failed to fetch comments')
     } finally {
       setLoading(false)
@@ -177,7 +170,7 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
             <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm text-gray-600">
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               Loading comments...
             </div>
