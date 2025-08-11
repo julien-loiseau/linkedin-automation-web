@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { LinkedInStatusIcon } from '@/components/linkedin/LinkedInStatusIcon'
+import { LinkedInConnectionBanner } from '@/components/linkedin/LinkedInConnectionBanner'
 import { AutomationWizard } from '@/components/automation/AutomationWizard'
 import { AutomationList } from '@/components/automation/AutomationList'
 import { DailyLimits } from '@/components/automation/DailyLimits'
@@ -16,12 +17,43 @@ export default function DashboardPage() {
   const [showAutomationForm, setShowAutomationForm] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [processingInvitations, setProcessingInvitations] = useState(false)
+  const [linkedInConnected, setLinkedInConnected] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth')
     }
   }, [user, loading, router])
+
+  // Check LinkedIn connection status
+  useEffect(() => {
+    const checkLinkedInStatus = async () => {
+      if (!user) return
+      
+      try {
+        const token = await getAuthToken()
+        if (!token) return
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/linkedin/status`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setLinkedInConnected(data.isConnected)
+        } else {
+          setLinkedInConnected(false)
+        }
+      } catch (error) {
+        console.error('Failed to check LinkedIn status:', error)
+        setLinkedInConnected(false)
+      }
+    }
+
+    checkLinkedInStatus()
+  }, [user])
 
   const handleAcceptInvitations = async () => {
     console.log('🎯 Accept invitations button clicked')
@@ -133,6 +165,9 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          {/* LinkedIn Connection Banner */}
+          {linkedInConnected === false && <LinkedInConnectionBanner />}
+          
           {/* Create Automation Wizard */}
           {showAutomationForm && (
             <div className="mb-6">

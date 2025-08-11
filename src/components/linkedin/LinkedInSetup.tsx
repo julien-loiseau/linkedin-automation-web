@@ -63,13 +63,20 @@ export function LinkedInSetup() {
         return
       }
 
+      // Clean up cookie values by removing surrounding quotes
+      const cleanLiAtCookie = liAtCookie.trim().replace(/^["']|["']$/g, '')
+      const cleanJsessionId = jsessionId.trim().replace(/^["']|["']$/g, '')
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/linkedin/validate-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ liAtCookie, jsessionId })
+        body: JSON.stringify({ 
+          liAtCookie: cleanLiAtCookie, 
+          jsessionId: cleanJsessionId 
+        })
       })
 
       const data = await response.json()
@@ -184,13 +191,24 @@ export function LinkedInSetup() {
       <div className="mb-4 p-4 bg-blue-50 rounded-md">
         <h4 className="font-medium text-blue-900 mb-2">How to get your LinkedIn cookies:</h4>
         <ol className="text-sm text-blue-800 space-y-1">
-          <li>1. Open LinkedIn in your browser and log in</li>
-          <li>2. Press F12 to open Developer Tools</li>
-          <li>3. Go to the "Application" or "Storage" tab</li>
-          <li>4. Find "Cookies" → "https://www.linkedin.com"</li>
-          <li>5. Copy the value of "li_at" cookie</li>
-          <li>6. Copy the value of "JSESSIONID" cookie (without quotes)</li>
+          <li>1. Download the <a href="https://chromewebstore.google.com/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Cookie Editor Chrome extension</a></li>
+          <li>2. Open a LinkedIn tab and log in</li>
+          <li>3. While on the LinkedIn tab, click the Cookie Editor extension icon</li>
+          <li>4. Find and copy the value of "li_at" cookie</li>
+          <li>5. Find and copy the value of "JSESSIONID" cookie</li>
         </ol>
+        
+        {/* Cookie Editor Guide */}
+        <div className="mt-3">
+          <img 
+            src="/cookie-editor-guide.gif" 
+            alt="How to use Cookie Editor extension"
+            className="w-full max-w-md rounded-md border border-gray-200 shadow-sm"
+          />
+          <p className="text-xs text-blue-600 mt-1">
+            Use the Cookie Editor extension as shown above to find your cookies
+          </p>
+        </div>
       </div>
 
       {error && (
@@ -213,6 +231,9 @@ export function LinkedInSetup() {
             rows={3}
             required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            You can paste the value with or without quotes - we'll clean it up automatically
+          </p>
         </div>
 
         <div className="mb-4">
@@ -228,6 +249,9 @@ export function LinkedInSetup() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            You can paste the value with or without quotes - we'll clean it up automatically
+          </p>
         </div>
 
         <button
