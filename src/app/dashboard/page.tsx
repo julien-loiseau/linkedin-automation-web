@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { LinkedInStatusIcon } from '@/components/linkedin/LinkedInStatusIcon'
 import { AutomationForm } from '@/components/automation/AutomationForm'
 import { AutomationList } from '@/components/automation/AutomationList'
+import { DailyLimits } from '@/components/automation/DailyLimits'
 import { ProfileDropdown } from '@/components/common/ProfileDropdown'
 import { getAuthToken } from '@/lib/supabase'
 
@@ -144,6 +145,9 @@ export default function DashboardPage() {
               />
             </div>
           )}
+
+          {/* Daily Message Limits */}
+          <DailyLimits />
 
           {/* Automations List */}
           <AutomationList key={refreshKey} />
