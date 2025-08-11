@@ -18,7 +18,7 @@ interface Step3ReplyConfigProps {
 }
 
 export function Step3ReplyConfig({ formData, onUpdate, onValidationChange }: Step3ReplyConfigProps) {
-  const [skipReplyFeature, setSkipReplyFeature] = useState(true)
+  const [skipReplyFeature, setSkipReplyFeature] = useState(false)
 
   // Update validation state - always valid since reply feature is optional
   useEffect(() => {
