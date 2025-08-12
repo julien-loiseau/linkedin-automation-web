@@ -22,7 +22,7 @@ interface Comment {
   dm_sent_at?: string
   dm_status?: string
   processed_at: string
-  comment_url?: string
+  comment_permalink?: string
 }
 
 interface PaginationInfo {
@@ -37,6 +37,14 @@ interface PaginationInfo {
 interface CommentsResponse {
   comments: Comment[]
   pagination: PaginationInfo
+  automation: {
+    post_url: string
+    has_reply_templates: boolean
+  }
+  total_stats?: {
+    total_connected: number
+    total_dms_sent: number
+  }
   error?: string
 }
 
@@ -49,6 +57,8 @@ interface CommentsSectionProps {
 export function CommentsSection({ automationId, isOpen, onClose }: CommentsSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const [automation, setAutomation] = useState<{ post_url: string; has_reply_templates: boolean } | null>(null)
+  const [totalStats, setTotalStats] = useState<{ total_connected: number; total_dms_sent: number } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -63,6 +73,8 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
       setError('')
       setComments([])
       setPagination(null)
+      setAutomation(null)
+      setTotalStats(null)
       setCurrentPage(1)
     }
   }, [isOpen, automationId])
@@ -94,6 +106,8 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
         setError('')
         setComments(data.comments)
         setPagination(data.pagination)
+        setAutomation(data.automation)
+        setTotalStats(data.total_stats || null)
         setCurrentPage(page)
       } else {
         setError(data.error || 'Failed to fetch comments')
@@ -110,6 +124,16 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
   }
 
   const getConnectionStats = () => {
+    // Use total stats from API instead of just current page stats
+    if (totalStats) {
+      return { 
+        connected: totalStats.total_connected, 
+        total: pagination?.total_comments || 0, 
+        dmSent: totalStats.total_dms_sent 
+      }
+    }
+    
+    // Fallback to current page stats if total stats not available
     if (!comments.length) return { connected: 0, total: 0, dmSent: 0 }
     
     const connected = comments.filter(c => c.is_connected).length
@@ -196,7 +220,12 @@ export function CommentsSection({ automationId, isOpen, onClose }: CommentsSecti
           <>
             <div className="space-y-4 mb-6">
               {comments.map((comment) => (
-                <CommentCard key={comment.id} comment={comment} automationId={automationId} />
+                <CommentCard 
+                  key={comment.id} 
+                  comment={comment} 
+                  automationId={automationId}
+                  hasReplyTemplates={automation?.has_reply_templates || false}
+                />
               ))}
             </div>
 
