@@ -25,6 +25,8 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
     postUrl: '',
     keyword: '',
     messageTemplate: '',
+    replyTemplate1stDegree: '',
+    replyTemplateNon1stDegree: '',
     file: null as File | null,
     processExistingComments: true
   })
@@ -129,6 +131,17 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
       return
     }
 
+    // Validate reply templates - must be both provided or both empty
+    const hasReplyTemplate1st = formData.replyTemplate1stDegree.trim()
+    const hasReplyTemplateNon1st = formData.replyTemplateNon1stDegree.trim()
+    
+    if (hasReplyTemplate1st || hasReplyTemplateNon1st) {
+      if (!hasReplyTemplate1st || !hasReplyTemplateNon1st) {
+        setError('Both reply templates must be provided when using Reply to Comment feature')
+        return
+      }
+    }
+
     setLoading(true)
     setError('')
 
@@ -146,6 +159,14 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
       formDataToSend.append('keyword', formData.keyword)
       formDataToSend.append('messageTemplate', formData.messageTemplate)
       formDataToSend.append('processExistingComments', formData.processExistingComments.toString())
+      
+      // Add reply templates if provided
+      if (formData.replyTemplate1stDegree.trim()) {
+        formDataToSend.append('replyTemplate1stDegree', formData.replyTemplate1stDegree)
+      }
+      if (formData.replyTemplateNon1stDegree.trim()) {
+        formDataToSend.append('replyTemplateNon1stDegree', formData.replyTemplateNon1stDegree)
+      }
       
       if (formData.file) {
         formDataToSend.append('file', formData.file)
@@ -467,6 +488,106 @@ export function AutomationForm({ onSuccess, onCancel }: AutomationFormProps) {
           <p className="text-xs text-gray-500 mt-1">
             Supported formats: PDF, DOC, DOCX, TXT, PNG, JPG, JPEG, GIF
           </p>
+        </div>
+
+        {/* Reply Templates (Optional) */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Reply to Comment Templates (Optional)</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Enable the "Reply to Comment" feature by providing custom templates. Both templates are required to enable this feature.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="replyTemplate1stDegree" className="block text-sm font-medium text-gray-700 mb-2">
+              Reply Template for 1st Degree Connections
+            </label>
+            <div className="relative">
+              <textarea
+                id="replyTemplate1stDegree"
+                value={formData.replyTemplate1stDegree}
+                onChange={(e) => setFormData(prev => ({ ...prev, replyTemplate1stDegree: e.target.value }))}
+                placeholder="I just sent you a DM!"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+              />
+              <div className="absolute top-2 right-2 flex gap-1 text-sm">
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplate1stDegree: prev.replyTemplate1stDegree + '👍' }))}
+                >👍</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplate1stDegree: prev.replyTemplate1stDegree + '😊' }))}
+                >😊</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplate1stDegree: prev.replyTemplate1stDegree + '💡' }))}
+                >💡</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplate1stDegree: prev.replyTemplate1stDegree + '🚀' }))}
+                >🚀</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplate1stDegree: prev.replyTemplate1stDegree + '📈' }))}
+                >📈</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplate1stDegree: prev.replyTemplate1stDegree + '🎯' }))}
+                >🎯</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Used when replying to 1st degree connections (when direct message can be sent).
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="replyTemplateNon1stDegree" className="block text-sm font-medium text-gray-700 mb-2">
+              Reply Template for Non-1st Degree Connections
+            </label>
+            <div className="relative">
+              <textarea
+                id="replyTemplateNon1stDegree"
+                value={formData.replyTemplateNon1stDegree}
+                onChange={(e) => setFormData(prev => ({ ...prev, replyTemplateNon1stDegree: e.target.value }))}
+                placeholder="Please connect so I can send you a DM!"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+              />
+              <div className="absolute top-2 right-2 flex gap-1 text-sm">
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplateNon1stDegree: prev.replyTemplateNon1stDegree + '👍' }))}
+                >👍</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplateNon1stDegree: prev.replyTemplateNon1stDegree + '😊' }))}
+                >😊</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplateNon1stDegree: prev.replyTemplateNon1stDegree + '💡' }))}
+                >💡</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplateNon1stDegree: prev.replyTemplateNon1stDegree + '🚀' }))}
+                >🚀</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplateNon1stDegree: prev.replyTemplateNon1stDegree + '📈' }))}
+                >📈</span>
+                <span 
+                  className="cursor-pointer hover:bg-gray-100 px-1 rounded" 
+                  onClick={() => setFormData(prev => ({ ...prev, replyTemplateNon1stDegree: prev.replyTemplateNon1stDegree + '🎯' }))}
+                >🎯</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Used when replying to 2nd/3rd+ degree connections (when they need to connect first).
+            </p>
+          </div>
         </div>
 
         {/* Form Actions */}

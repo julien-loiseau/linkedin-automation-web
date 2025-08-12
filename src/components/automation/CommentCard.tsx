@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { getAuthToken } from '@/lib/supabase'
+import { useConfig } from '@/hooks/useConfig'
 
 interface Comment {
   id: string
@@ -21,16 +22,19 @@ interface Comment {
   dm_status?: string
   processing_status?: 'pending' | 'skipped_existing' | 'dm_sent' | 'failed'
   processed_at: string
-  comment_url?: string
+  comment_permalink?: string
 }
 
 interface CommentCardProps {
   comment: Comment
   automationId: string
+  hasReplyTemplates: boolean
 }
 
-export function CommentCard({ comment, automationId }: CommentCardProps) {
+export function CommentCard({ comment, automationId, hasReplyTemplates }: CommentCardProps) {
+  const { config } = useConfig()
   const [testing, setTesting] = useState(false)
+  const [replying, setReplying] = useState(false)
 
   const testMessage = async () => {
     setTesting(true)
@@ -67,6 +71,41 @@ export function CommentCard({ comment, automationId }: CommentCardProps) {
       alert('❌ Failed to send test message')
     } finally {
       setTesting(false)
+    }
+  }
+
+  const replyToComment = async () => {
+    setReplying(true)
+    try {
+      const token = await getAuthToken()
+      if (!token) {
+        alert('Please log in first')
+        return
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/automations/${automationId}/reply-comment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          comment_id: comment.comment_id
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        alert(`✅ Reply sent to ${comment.commenter_name}: "${data.reply_text}"`)
+      } else {
+        alert(`❌ Failed to reply to comment: ${data.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Reply to comment error:', error)
+      alert('❌ Failed to reply to comment')
+    } finally {
+      setReplying(false)
     }
   }
 
@@ -175,11 +214,12 @@ export function CommentCard({ comment, automationId }: CommentCardProps) {
           </span>
         </div>
         <div className="flex items-center space-x-2">
-          <button
-            onClick={testMessage}
-            disabled={testing}
-            className="inline-flex items-center px-2 py-1 border border-green-300 shadow-sm text-xs leading-4 font-medium rounded text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 disabled:opacity-50"
-          >
+          {config?.devDebug && (
+            <button
+              onClick={testMessage}
+              disabled={testing}
+              className="inline-flex items-center px-2 py-1 border border-green-300 shadow-sm text-xs leading-4 font-medium rounded text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 disabled:opacity-50"
+            >
             {testing ? (
               <>
                 <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -196,7 +236,32 @@ export function CommentCard({ comment, automationId }: CommentCardProps) {
                 Test Message
               </>
             )}
-          </button>
+            </button>
+          )}
+          {config?.devDebug && comment.matches_criteria && hasReplyTemplates && (
+            <button
+              onClick={replyToComment}
+              disabled={replying}
+              className="inline-flex items-center px-2 py-1 border border-blue-300 shadow-sm text-xs leading-4 font-medium rounded text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {replying ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Replying...
+                </>
+              ) : (
+                <>
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                  Reply to Comment
+                </>
+              )}
+            </button>
+          )}
           {getDMStatusIcon()}
         </div>
       </div>
@@ -219,9 +284,9 @@ export function CommentCard({ comment, automationId }: CommentCardProps) {
               {comment.keyword_matched}
             </span>
           )}
-          {comment.comment_url && (
+          {comment.comment_permalink && (
             <a
-              href={comment.comment_url}
+              href={comment.comment_permalink}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center text-blue-600 hover:text-blue-800 hover:underline"

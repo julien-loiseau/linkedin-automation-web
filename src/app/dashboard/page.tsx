@@ -10,20 +10,52 @@ import { AutomationList } from '@/components/automation/AutomationList'
 import { DailyLimits } from '@/components/automation/DailyLimits'
 import { ProfileDropdown } from '@/components/common/ProfileDropdown'
 import { getAuthToken } from '@/lib/supabase'
+import { useConfig } from '@/hooks/useConfig'
 
 export default function DashboardPage() {
-  const { user, loading, signOut } = useAuth()
+  const { user, loading, signOut, linkedInProfile } = useAuth()
+  const { config, loading: configLoading } = useConfig()
   const router = useRouter()
   const [showAutomationForm, setShowAutomationForm] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [processingInvitations, setProcessingInvitations] = useState(false)
   const [linkedInConnected, setLinkedInConnected] = useState<boolean | null>(null)
+  const [profileName, setProfileName] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth')
     }
   }, [user, loading, router])
+
+  // Fetch profile name from Supabase profiles table
+  const fetchProfileName = async () => {
+    if (!user) return
+    
+    try {
+      const token = await getAuthToken()
+      if (!token) return
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setProfileName(data.name)
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile name:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (user && !profileName) {
+      fetchProfileName()
+    }
+  }, [user, profileName])
 
   // Check LinkedIn connection status
   useEffect(() => {
@@ -120,33 +152,35 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Welcome back, {user.user_metadata?.full_name || (user.email?.split('@')?.[0] ? (user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1)) : 'User')}! 😊
+                Welcome back, {linkedInProfile?.name || profileName || user.user_metadata?.full_name || (user.email?.split('@')?.[0] ? (user.email.split('@')[0].charAt(0).toUpperCase() + user.email.split('@')[0].slice(1)) : 'User')}! 😊
               </h1>
             </div>
             <div className="flex items-center space-x-3">
               <LinkedInStatusIcon />
-              <button
-                onClick={handleAcceptInvitations}
-                disabled={processingInvitations}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md font-medium flex items-center"
-              >
-                {processingInvitations ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                    </svg>
-                    Accept Invitations
-                  </>
-                )}
-              </button>
+              {config?.devDebug && (
+                <button
+                  onClick={handleAcceptInvitations}
+                  disabled={processingInvitations}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md font-medium flex items-center"
+                >
+                  {processingInvitations ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                      </svg>
+                      Accept Invitations
+                    </>
+                  )}
+                </button>
+              )}
               <button
                 onClick={() => setShowAutomationForm(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center"
