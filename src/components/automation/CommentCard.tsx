@@ -38,6 +38,8 @@ export function CommentCard({ comment, automationId, hasReplyTemplates }: Commen
 
   const testMessage = async () => {
     setTesting(true)
+    console.log('🔍 API URL:', process.env.NEXT_PUBLIC_API_URL)
+    console.log('🔍 Full URL:', `${process.env.NEXT_PUBLIC_API_URL}/api/automations/${automationId}/test-message`)
     try {
       const token = await getAuthToken()
       if (!token) {
@@ -45,7 +47,8 @@ export function CommentCard({ comment, automationId, hasReplyTemplates }: Commen
         return
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/automations/${automationId}/test`, {
+      console.log('🔍 Making API request...')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/automations/${automationId}/test-message`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -59,15 +62,19 @@ export function CommentCard({ comment, automationId, hasReplyTemplates }: Commen
         })
       })
 
+      console.log('🔍 Response received:', response.status, response.statusText)
       const data = await response.json()
+      console.log('🔍 Response data:', data)
 
       if (response.ok) {
+        console.log('🔍 ✅ Success response')
         alert(`✅ Test message sent to ${comment.commenter_name}!`)
       } else {
+        console.log('🔍 ❌ Error response')
         alert(`❌ Failed to send test message: ${data.error || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Test message error:', error)
+      console.error('🔍 ❌ Test message error:', error)
       alert('❌ Failed to send test message')
     } finally {
       setTesting(false)
