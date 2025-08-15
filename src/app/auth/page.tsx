@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
+import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm'
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -19,19 +21,34 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {isLogin ? <LoginForm /> : <RegisterForm />}
+        {showForgotPassword ? (
+          <ForgotPasswordForm 
+            onBack={() => {
+              setShowForgotPassword(false)
+              setIsLogin(true)
+            }} 
+          />
+        ) : isLogin ? (
+          <LoginForm 
+            onForgotPassword={() => setShowForgotPassword(true)}
+          />
+        ) : (
+          <RegisterForm />
+        )}
 
-        <div className="text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            {isLogin 
-              ? "Don't have an account? Sign up" 
-              : "Already have an account? Sign in"
-            }
-          </button>
-        </div>
+        {!showForgotPassword && (
+          <div className="text-center">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              {isLogin 
+                ? "Don't have an account? Sign up" 
+                : "Already have an account? Sign in"
+              }
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
