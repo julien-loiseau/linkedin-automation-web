@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export function LoginForm() {
@@ -8,6 +9,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,8 +27,9 @@ export function LoginForm() {
         return
       }
 
-      // Redirect will be handled by auth state change
+      // Redirect to dashboard after successful login
       console.log('Login successful:', data.user?.email)
+      router.push('/dashboard')
     } catch (err) {
       setError('An unexpected error occurred')
     } finally {
